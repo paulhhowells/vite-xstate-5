@@ -6,7 +6,7 @@
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "skipLibCheck": true,
+    "skipLibCheck": true, /* Set by Vite & required by Xstate */
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -18,7 +18,7 @@
     "jsx": "react-jsx",
 
     /* Linting */
-    "strict": true,
+    "strict": true, /* Set by Vite. Includes skipLibCheck which is required by Xstate */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
