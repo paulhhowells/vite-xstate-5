@@ -1,4 +1,8 @@
-# React + TypeScript + Vite
+# Vite & React & TypeScript & Xstate 5
+
+Warning: installing xstate `5.17.0` breaks stuff.  Have not explored why yet.
+
+## React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
