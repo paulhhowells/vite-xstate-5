@@ -1,81 +1,93 @@
 import { setup, fromPromise, assign } from 'xstate';
 
+type FileConfig = Record<string, string|number>;
+type ValidatorActor = { input: { count: number } };
+
+const validationActor = fromPromise(
+	async ({ input }: ValidatorActor) => {
+		return { count: input.count + 1 };
+	}
+);
+
 export const machine =
 	setup(
 		{
 			types: {
 				context: {} as {
-					response: null;
+					config: null | FileConfig;
 					count: number;
 				},
-				events: {} as { type: 'goToSecond' }
+				events: {} as
+					| { type: 'goto.file' }
+					| { type: 'load.config'; config: FileConfig }
 			},
 			actors: {
-				ValidationActor: fromPromise(
-					async ({ input }: { input: { count: number } }) => {
-						console.log('INPUT', input);
-
-						return { count: input.count + 1 };
-					}
-				)
-			}
+				validationActor,
+			},
+			actions: {},
+			guards: {},
 		}
 	)
 	.createMachine(
 		{
 			context: {
-				response: null,
-				count: 0
+				config: null,
+				count: 0,
 			},
-			id: 'stateMachine',
-			initial: 'first state',
+			id: 'machine',
+			initial: 'unready',
 			states: {
-				'first state': {
+				'unready': {
 					on: {
-						goToSecond: {
-							target: 'second state'
-						}
-					},
-					description:
-						'The initial state where the machine starts. It can transition to the second state.'
-				},
-				'second state': {
-					invoke: {
-						id: 'actorService',
-						input: ({ context }) => ({
-							count: context.count,
-							testKey: 123,
-							propertyKey: 2
-						}),
-						onDone: {
-							target: 'done',
-							actions: assign(({ event }) => {
-								console.log('assign', event);
-
-								return {
-									count: event.output.count
-									// response: event.output
-								};
-							})
+						'load.config': {
+							actions: assign(
+								({ event: { config } }) => ({ config })
+							),
+							guard: ({ event: { config } }) => (config && 'x' in config),
+							target: 'file',
 						},
-						onError: {
-							target: 'error'
-						},
-						src: 'ValidationActor'
 					},
-					description:
-						'In this state, the machine sends context to an actor and assigns the response from the actor to context.'
+					description: 'The initial state where the machine starts. It can transition to the second state.'
 				},
-				done: {
-					type: 'final',
-					description:
-						'The state where the machine goes after receiving a response from the actor.'
+				'file': {
+					initial: 'validate',
+					states: {
+						'validate': {
+							invoke: {
+								id: 'actorService',
+								src: 'validationActor',
+								input: ({ context }) => ({
+									count: context.count
+								}),
+								onDone: {
+									target: 'done',
+									actions: assign(({ event }) => {
+										return { count: event.output.count };
+									})
+								},
+								onError: {
+									target: 'error'
+								}
+							},
+							description: 'In this state, the machine sends context to an actor and assigns the response from the actor to context.'
+						},
+						'done': {
+							type: 'final',
+							description:
+							'The state where the machine goes after receiving a response from the actor.'
+						},
+						'error': {
+							type: 'final',
+							description:
+							'The state where the machine goes if there is an error in the actor invocation.'
+						},
+					},
 				},
-				error: {
-					type: 'final',
-					description:
-						'The state where the machine goes if there is an error in the actor invocation.'
+			},
+			on: {
+				'goto.file': {
+					target: '.file'
 				}
-			}
+			},
 		}
 	);

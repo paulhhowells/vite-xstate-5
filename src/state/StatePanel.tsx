@@ -1,21 +1,34 @@
+import React from 'react';
 import { useMachine } from '@xstate/react';
 import { machine } from './machine';
 
-
 export function StatePanel () {
-	const [snapshot, send] = useMachine(machine);
+	const [ snapshot, send ] = useMachine(machine);
 
-	console.log('snapshot', snapshot);
-	console.log('send', send);
+	React.useEffect(
+		() => {
+			send({ type: 'load.config', config: { x: 9, y: 7, z: 4 }});
+		},
+		[send]
+	);
 
-	const handleUpdateClick = () => {
-		send({ type: 'goToSecond' });
+	const { context, value } = snapshot;
+	const { count } = context;
+
+	const handleGoToFileClick = () => {
+		send({ type: 'goto.file' });
 	};
 
 	return (
 		<div>
-			<h1>State Panel</h1>
-			<button type="button" onClick={handleUpdateClick}>goToSecond</button>
+			<h2>State Panel</h2>
+			<h3>{ count }</h3>
+			<pre><code>{ JSON.stringify(value) }</code></pre>
+
+			<button type="button" onClick={handleGoToFileClick}>goto file</button>
+			<pre>
+				{ JSON.stringify(snapshot) }
+			</pre>
 		</div>
 	);
 }
