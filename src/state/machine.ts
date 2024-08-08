@@ -8,14 +8,23 @@ const validationActor = fromPromise(
 		return { count: input.count + 1 };
 	}
 );
+const testActor = fromPromise(async ({ input }) => {
+	console.log('test src', input);
+
+	return { output: 3 };
+});
 
 export const machine =
 	setup(
 		{
 			types: {
+				input: {} as {
+					myVariable: number | string;
+				},
 				context: {} as {
 					config: null | FileConfig;
 					count: number;
+					myVariable: number | string;
 				},
 				events: {} as
 					| { type: 'goto.file' }
@@ -23,6 +32,7 @@ export const machine =
 			},
 			actors: {
 				validationActor,
+				testActor,
 			},
 			actions: {},
 			guards: {},
@@ -30,10 +40,11 @@ export const machine =
 	)
 	.createMachine(
 		{
-			context: {
+			context: ({ input })=>({
 				config: null,
 				count: 0,
-			},
+				myVariable: input.myVariable,
+			}),
 			id: 'machine',
 			initial: 'unready',
 			states: {
@@ -44,12 +55,31 @@ export const machine =
 								({ event: { config } }) => ({ config })
 							),
 							guard: ({ event: { config } }) => (config && 'x' in config),
-							target: 'file',
+							target: 'process',
 						},
 					},
 					description: 'The initial state where the machine starts. It can transition to the second state.'
 				},
+				'process': {
+					initial: 'test',
+					invoke: {
+						id: 'testService',
+						input: ({ context }) => ({
+							count: context.count,
+							myVariable: context.myVariable,
+						}),
+						// Inline src functions that are not created as 'actors' no longer work in Xstate 5
+						src: 'testActor',
+						onDone: {
+							target: '#file'
+						}
+					},
+					states: {
+						'test': {}
+					}
+				},
 				'file': {
+					id: 'file',
 					initial: 'validate',
 					states: {
 						'validate': {
@@ -72,12 +102,11 @@ export const machine =
 							description: 'In this state, the machine sends context to an actor and assigns the response from the actor to context.'
 						},
 						'done': {
-							type: 'final',
+							// type: 'final',
 							description:
 							'The state where the machine goes after receiving a response from the actor.'
 						},
 						'error': {
-							type: 'final',
 							description:
 							'The state where the machine goes if there is an error in the actor invocation.'
 						},
@@ -86,7 +115,7 @@ export const machine =
 			},
 			on: {
 				'goto.file': {
-					target: '.file'
+					target: '.process'
 				}
 			},
 		}

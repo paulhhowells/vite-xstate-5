@@ -3,7 +3,12 @@ import { useMachine } from '@xstate/react';
 import { machine } from './machine';
 
 export function StatePanel () {
-	const [ snapshot, send ] = useMachine(machine);
+	const [ snapshot, send ] = useMachine(
+		machine,
+		{
+			input: { myVariable: 7 }
+		}
+	);
 
 	React.useEffect(
 		() => {
@@ -13,7 +18,7 @@ export function StatePanel () {
 	);
 
 	const { context, value } = snapshot;
-	const { count } = context;
+	const { count, myVariable } = context;
 
 	const handleGoToFileClick = () => {
 		send({ type: 'goto.file' });
@@ -22,7 +27,7 @@ export function StatePanel () {
 	return (
 		<div>
 			<h2>State Panel</h2>
-			<h3>{ count }</h3>
+			<h3>{ count } { myVariable }</h3>
 			<pre><code>{ JSON.stringify(value) }</code></pre>
 
 			<button type="button" onClick={handleGoToFileClick}>goto file</button>
