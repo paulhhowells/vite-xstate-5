@@ -7,6 +7,7 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true, /* Set by Vite & required by Xstate */
+		"strictNullChecks": true, /* Required by Xstate, redundant due to use of strict. */
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -18,7 +19,7 @@
     "jsx": "react-jsx",
 
     /* Linting */
-    "strict": true, /* Set by Vite. Includes skipLibCheck which is required by Xstate */
+    "strict": true, /* Set by Vite. Includes strictNullChecks which is required by Xstate */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
