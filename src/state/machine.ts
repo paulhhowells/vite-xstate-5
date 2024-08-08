@@ -17,16 +17,16 @@ const testActor = fromPromise(async ({ input }) => {
 export const machine =
 	setup(
 		{
-			types: {
-				input: {} as {
+			types: {} as {
+				input: {
 					myVariable: number | string;
 				},
-				context: {} as {
+				context: {
 					config: null | FileConfig;
 					count: number;
 					myVariable: number | string;
 				},
-				events: {} as
+				events:
 					| { type: 'goto.file' }
 					| { type: 'load.config'; config: FileConfig }
 			},
