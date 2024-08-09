@@ -1,7 +1,15 @@
-import { setup, fromPromise, assign } from 'xstate';
+import {
+	assertEvent,
+	assign,
+	fromPromise,
+	setup,
+ } from 'xstate';
+import { type EventFromLogic } from 'xstate';
 
 type FileConfig = Record<string, string|number>;
 type ValidatorActor = { input: { count: number } };
+
+export type MachineEvent = EventFromLogic<typeof machine>;
 
 const validationActor = fromPromise(
 	async ({ input }: ValidatorActor) => {

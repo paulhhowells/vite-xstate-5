@@ -12,7 +12,9 @@ export function StatePanel () {
 
 	React.useEffect(
 		() => {
-			send({ type: 'load.config', config: { x: 9, y: 7, z: 4 }});
+			const event: MachineEvent = { type: 'load.config', config: { x: 9, y: 7, z: 4 }};
+
+			send(event);
 		},
 		[send]
 	);
@@ -21,7 +23,9 @@ export function StatePanel () {
 	const { count, myVariable } = context;
 
 	const handleGoToFileClick = () => {
-		send({ type: 'goto.file' });
+		const event: MachineEvent = { type: 'goto.file' };
+
+		send(event);
 	};
 
 	return (
