@@ -1,6 +1,9 @@
 import React from 'react';
 import { useMachine } from '@xstate/react';
-import { machine } from './machine';
+import {
+	machine,
+	type MachineEvent,
+} from './machine';
 
 export function StatePanel () {
 	const [ snapshot, send ] = useMachine(
