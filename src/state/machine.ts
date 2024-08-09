@@ -36,14 +36,22 @@ export const machine =
 				},
 				events:
 					| { type: 'goto.file' }
-					| { type: 'load.config'; config: FileConfig }
+					| { type: 'load.config'; config: FileConfig; },
 			},
 			actors: {
 				validationActor,
 				testActor,
 			},
-			actions: {},
-			guards: {},
+			actions: {
+				assignConfig: assign((_, params: { config: FileConfig; }) => {
+					const { config } = params;
+
+					return ({ config });
+				})
+			},
+			guards: {
+				'config.ready.guard': (_, params: { config: FileConfig }) => Boolean(params.config && 'x' in params.config),
+			},
 		}
 	)
 	.createMachine(
@@ -59,10 +67,18 @@ export const machine =
 				'unready': {
 					on: {
 						'load.config': {
-							actions: assign(
-								({ event: { config } }) => ({ config })
-							),
-							guard: ({ event: { config } }) => (config && 'x' in config),
+							actions: ({ event }) => ({
+								type: 'assignConfig',
+								params: { config: event.config },
+							}),
+							guard: {
+								type: 'config.ready.guard',
+								params: ({ event }) => {
+									assertEvent(event, 'load.config');
+
+									return { config: event.config };
+								},
+							},
 							target: 'process',
 						},
 					},
@@ -110,7 +126,6 @@ export const machine =
 							description: 'In this state, the machine sends context to an actor and assigns the response from the actor to context.'
 						},
 						'done': {
-							// type: 'final',
 							description:
 							'The state where the machine goes after receiving a response from the actor.'
 						},
